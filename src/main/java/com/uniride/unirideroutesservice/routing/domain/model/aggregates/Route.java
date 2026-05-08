@@ -8,9 +8,14 @@ import com.uniride.unirideroutesservice.shared.domain.model.entities.AuditableMo
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "routes")
 public class Route extends AuditableModel {
@@ -29,7 +34,9 @@ public class Route extends AuditableModel {
     @AttributeOverrides({
             @AttributeOverride(name="latitude", column=@Column(name="start_lat")),
             @AttributeOverride(name="longitude", column=@Column(name="start_lng")),
-            @AttributeOverride(name="address", column=@Column(name="start_address"))
+            @AttributeOverride(name="address", column=@Column(name="start_address")),
+            @AttributeOverride(name="passengerId", column=@Column(name="start_passenger_id")),
+            @AttributeOverride(name="distanceFromStartKm", column=@Column(name="start_distance_km"))
     })
     private Location startLocation;
 
@@ -37,13 +44,26 @@ public class Route extends AuditableModel {
     @AttributeOverrides({
             @AttributeOverride(name="latitude", column=@Column(name="dest_lat")),
             @AttributeOverride(name="longitude", column=@Column(name="dest_lng")),
-            @AttributeOverride(name="address", column=@Column(name="dest_address"))
+            @AttributeOverride(name="address", column=@Column(name="dest_address")),
+            @AttributeOverride(name="passengerId", column=@Column(name="dest_passenger_id")),
+            @AttributeOverride(name="distanceFromStartKm", column=@Column(name="dest_distance_km"))
     })
     private Location destination;
+
+    @Column(columnDefinition = "TEXT")
+    private String encodedPolyline;
+
+    @Column(nullable = false)
+    private Double totalDistanceKm;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RouteStatus status;
+
+    @ElementCollection
+    @CollectionTable(name = "route_waypoints", joinColumns = @JoinColumn(name = "route_id"))
+    @OrderColumn(name = "stop_order")
+    private List<Location> waypoints = new ArrayList<>();
 
     public Route(CreateRouteCommand command, Location destinationLocation) {
         this.leaderId = command.leaderId();
@@ -51,5 +71,6 @@ public class Route extends AuditableModel {
         this.startLocation = new Location(command.campus().getLatitude(), command.campus().getLongitude(), command.campus().getDescription());
         this.destination = destinationLocation;
         this.status = RouteStatus.PENDING;
+        this.totalDistanceKm = 0.0;
     }
 }
