@@ -3,13 +3,17 @@ package com.uniride.unirideroutesservice.routing.domain.services;
 import com.uniride.unirideroutesservice.routing.domain.model.aggregates.Route;
 import com.uniride.unirideroutesservice.routing.domain.model.commands.AddWaypointCommand;
 import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
+import com.uniride.unirideroutesservice.routing.domain.model.commands.RemoveWaypointCommand;
+import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.RouteStatus;
 
 import java.util.Optional;
 
 public interface RouteCommandService {
-    // Para crear la ruta inicial
     Optional<Route> handle(CreateRouteCommand command);
-
-    // NUEVO: Para añadir las paradas de los seguidores
     Optional<Route> handle(AddWaypointCommand command);
+
+    // NUEVOS MÉTODOS
+    void updateStatus(Long routeId, RouteStatus status);
+    void deleteRoute(Long routeId);
+    Optional<Route> handle(RemoveWaypointCommand command);
 }

@@ -1,3 +1,4 @@
+// src/main/java/com/uniride/unirideroutesservice/routing/interfaces/rest/resources/RouteResource.java
 package com.uniride.unirideroutesservice.routing.interfaces.rest.resources;
 
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Location;
@@ -13,7 +14,7 @@ public record RouteResource(
         Double destLat,
         Double destLng,
         String status,
-        String encodedPolyline,     // ¡CRÍTICO PARA FLUTTER!
-        Double totalDistanceKm,     // ¡CRÍTICO PARA FLUTTER!
-        List<Location> waypoints    // ¡CRÍTICO PARA FLUTTER!
+        String encodedPolyline,
+        Double totalDistanceKm,
+        List<Location> waypoints // <-- Contendrá la Location con passengerId y distanceFromStartKm
 ) {}

@@ -1,4 +1,3 @@
-// src/main/java/com/uniride/unirideroutesservice/routing/domain/model/aggregates/Route.java
 package com.uniride.unirideroutesservice.routing.domain.model.aggregates;
 
 import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
@@ -35,7 +34,9 @@ public class Route extends AuditableModel {
     @AttributeOverrides({
             @AttributeOverride(name="latitude", column=@Column(name="start_lat")),
             @AttributeOverride(name="longitude", column=@Column(name="start_lng")),
-            @AttributeOverride(name="address", column=@Column(name="start_address"))
+            @AttributeOverride(name="address", column=@Column(name="start_address")),
+            @AttributeOverride(name="passengerId", column=@Column(name="start_passenger_id")),
+            @AttributeOverride(name="distanceFromStartKm", column=@Column(name="start_distance_km"))
     })
     private Location startLocation;
 
@@ -43,11 +44,12 @@ public class Route extends AuditableModel {
     @AttributeOverrides({
             @AttributeOverride(name="latitude", column=@Column(name="dest_lat")),
             @AttributeOverride(name="longitude", column=@Column(name="dest_lng")),
-            @AttributeOverride(name="address", column=@Column(name="dest_address"))
+            @AttributeOverride(name="address", column=@Column(name="dest_address")),
+            @AttributeOverride(name="passengerId", column=@Column(name="dest_passenger_id")),
+            @AttributeOverride(name="distanceFromStartKm", column=@Column(name="dest_distance_km"))
     })
     private Location destination;
 
-    // Aquí guardamos la ruta dibujada (texto codificado)
     @Column(columnDefinition = "TEXT")
     private String encodedPolyline;
 
@@ -58,7 +60,6 @@ public class Route extends AuditableModel {
     @Column(nullable = false)
     private RouteStatus status;
 
-    // Paradas Intermedias (Seguidores)
     @ElementCollection
     @CollectionTable(name = "route_waypoints", joinColumns = @JoinColumn(name = "route_id"))
     @OrderColumn(name = "stop_order")

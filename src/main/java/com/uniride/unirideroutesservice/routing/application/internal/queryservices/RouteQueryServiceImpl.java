@@ -2,6 +2,7 @@ package com.uniride.unirideroutesservice.routing.application.internal.queryservi
 
 import com.uniride.unirideroutesservice.routing.application.outboundservices.openstreetmap.PolylineDecoder;
 import com.uniride.unirideroutesservice.routing.domain.model.aggregates.Route;
+import com.uniride.unirideroutesservice.routing.domain.model.queries.GetAllPendingRoutesByCampusQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.GetRouteByIdQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.SearchNearbyRoutesQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.RouteStatus;
@@ -52,5 +53,23 @@ public class RouteQueryServiceImpl implements RouteQueryService {
             }
         }
         return nearbyRoutes;
+    }
+
+
+
+    @Override
+    public Optional<Route> findActiveRouteByLeaderId(Long leaderId) {
+        // Busca el primer anuncio del líder que NO esté en estado COMPLETED (es decir, Pending o Active)
+        return routeRepository.findFirstByLeaderIdAndStatusNot(leaderId, RouteStatus.COMPLETED);
+    }
+
+    @Override
+    public List<Route> handle(GetAllPendingRoutesByCampusQuery query) {
+        // Devuelve el catálogo puro de rutas pendientes para esa sede
+        return routeRepository.findByStartCampusAndStatus(query.campus(), RouteStatus.PENDING);
+    }
+    @Override
+    public Optional<Route> findActiveRouteByPassengerId(Long passengerId) {
+        return routeRepository.findActiveRouteByPassengerId(passengerId);
     }
 }
