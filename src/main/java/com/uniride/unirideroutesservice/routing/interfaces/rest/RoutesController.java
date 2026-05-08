@@ -1,30 +1,26 @@
 package com.uniride.unirideroutesservice.routing.interfaces.rest;
 
-import com.uniride.unirideroutesservice.routing.domain.model.aggregates.Route;
-import com.uniride.unirideroutesservice.routing.domain.model.queries.GetRouteByIdQuery;
-import com.uniride.unirideroutesservice.routing.domain.model.queries.GetRoutesWithin500mQuery;
+import com.uniride.unirideroutesservice.routing.domain.model.commands.AddWaypointCommand;
+import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
+import com.uniride.unirideroutesservice.routing.domain.model.queries.SearchNearbyRoutesQuery;
+import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.UniversityCampus;
 import com.uniride.unirideroutesservice.routing.domain.services.RouteCommandService;
 import com.uniride.unirideroutesservice.routing.domain.services.RouteQueryService;
-import com.uniride.unirideroutesservice.routing.interfaces.rest.resources.CreateRouteResource;
 import com.uniride.unirideroutesservice.routing.interfaces.rest.resources.RouteResource;
-import com.uniride.unirideroutesservice.routing.interfaces.rest.transform.CreateRouteCommandFromResourceAssembler;
 import com.uniride.unirideroutesservice.routing.interfaces.rest.transform.RouteResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/api/v1/routes")
-@Tag(name = "Routes", description = "Endpoints para la gestión de Rutas de CampusDrive")
 public class RoutesController {
 
     private final RouteCommandService routeCommandService;
-    private final RouteQueryService routeQueryService;
+    private final RouteQueryService routeQueryService; // (Asegúrate de actualizar este servicio con la nueva firma del Repo)
 
     public RoutesController(RouteCommandService routeCommandService, RouteQueryService routeQueryService) {
         this.routeCommandService = routeCommandService;
@@ -32,38 +28,22 @@ public class RoutesController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear una nueva Ruta", description = "Crea una ruta desde una Sede Universitaria hacia una dirección destino usando OpenStreetMap.")
-    public ResponseEntity<RouteResource> createRoute(@RequestBody CreateRouteResource resource) {
-        var command = CreateRouteCommandFromResourceAssembler.toCommandFromResource(resource);
-        Optional<Route> route = routeCommandService.handle(command);
+    @Operation(summary = "PANTALLA 3B: Crear Ruta (Columna Vertebral)")
+    public ResponseEntity<?> createRoute(@RequestBody CreateRouteRequest request) {
+        // Obtenemos el ID del estudiante directamente del Token de IAM
+        String leaderIdStr = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long leaderId = Long.parseLong(leaderIdStr);
 
-        if (route.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(route.get());
-        return new ResponseEntity<>(routeResource, HttpStatus.CREATED);
+        var command = new CreateRouteCommand(leaderId, request.campus(), request.address(), request.lat(), request.lng());
+        return ResponseEntity.ok(routeCommandService.handle(command).orElseThrow());
     }
 
-    @GetMapping("/{routeId}")
-    @Operation(summary = "Obtener Ruta por ID", description = "Devuelve los detalles de una ruta específica.")
-    public ResponseEntity<RouteResource> getRouteById(@PathVariable Long routeId) {
-        var getRouteByIdQuery = new GetRouteByIdQuery(routeId);
-        var route = routeQueryService.handle(getRouteByIdQuery);
+    @GetMapping("/search")
+    @Operation(summary = "PANTALLA 2: Buscar rutas a 500m del tubo geográfico")
+    public ResponseEntity<List<RouteResource>> searchNearbyRoutes(@RequestParam UniversityCampus campus, @RequestParam Double lat, @RequestParam Double lng) {
 
-        if (route.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(route.get());
-        return ResponseEntity.ok(routeResource);
-    }
-
-    @GetMapping("/nearby")
-    @Operation(summary = "Obtener rutas a menos de 500m", description = "Aplica el algoritmo de 500m usando la latitud y longitud del Seguidor para encontrar rutas pendientes.")
-    public ResponseEntity<List<RouteResource>> getNearbyRoutes(@RequestParam Double studentLat, @RequestParam Double studentLng) {
-        var getRoutesWithin500mQuery = new GetRoutesWithin500mQuery(studentLat, studentLng);
-        var routes = routeQueryService.handle(getRoutesWithin500mQuery);
+        var query = new SearchNearbyRoutesQuery(campus, lat, lng);
+        var routes = routeQueryService.handle(query);
 
         var routeResources = routes.stream()
                 .map(RouteResourceFromEntityAssembler::toResourceFromEntity)
@@ -71,4 +51,15 @@ public class RoutesController {
 
         return ResponseEntity.ok(routeResources);
     }
+
+    @PutMapping("/{routeId}/waypoints")
+    @Operation(summary = "PANTALLA 3A: Añadir Parada (Seguidor se une)")
+    public ResponseEntity<?> addWaypoint(@PathVariable Long routeId, @RequestBody WaypointRequest request) {
+        var command = new AddWaypointCommand(routeId, request.lat(), request.lng(), request.address());
+        return ResponseEntity.ok(routeCommandService.handle(command).orElseThrow());
+    }
 }
+
+// Records para los Requests (Puedes colocarlos en sus propios archivos en el paquete /resources)
+record CreateRouteRequest(UniversityCampus campus, String address, Double lat, Double lng) {}
+record WaypointRequest(Double lat, Double lng, String address) {}

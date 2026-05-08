@@ -1,3 +1,4 @@
+// src/main/java/com/uniride/unirideroutesservice/routing/domain/model/aggregates/Route.java
 package com.uniride.unirideroutesservice.routing.domain.model.aggregates;
 
 import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
@@ -8,9 +9,14 @@ import com.uniride.unirideroutesservice.shared.domain.model.entities.AuditableMo
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "routes")
 public class Route extends AuditableModel {
@@ -41,9 +47,22 @@ public class Route extends AuditableModel {
     })
     private Location destination;
 
+    // Aquí guardamos la ruta dibujada (texto codificado)
+    @Column(columnDefinition = "TEXT")
+    private String encodedPolyline;
+
+    @Column(nullable = false)
+    private Double totalDistanceKm;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RouteStatus status;
+
+    // Paradas Intermedias (Seguidores)
+    @ElementCollection
+    @CollectionTable(name = "route_waypoints", joinColumns = @JoinColumn(name = "route_id"))
+    @OrderColumn(name = "stop_order")
+    private List<Location> waypoints = new ArrayList<>();
 
     public Route(CreateRouteCommand command, Location destinationLocation) {
         this.leaderId = command.leaderId();
@@ -51,5 +70,6 @@ public class Route extends AuditableModel {
         this.startLocation = new Location(command.campus().getLatitude(), command.campus().getLongitude(), command.campus().getDescription());
         this.destination = destinationLocation;
         this.status = RouteStatus.PENDING;
+        this.totalDistanceKm = 0.0;
     }
 }
