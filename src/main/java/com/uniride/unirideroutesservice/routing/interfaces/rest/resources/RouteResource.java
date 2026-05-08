@@ -1,0 +1,2 @@
+package com.uniride.unirideroutesservice.routing.interfaces.rest.resources;
+public record RouteResource(Long id, Long leaderId, String startCampus, Double startLat, Double startLng, String destinationAddress, Double destLat, Double destLng, String status) {}
