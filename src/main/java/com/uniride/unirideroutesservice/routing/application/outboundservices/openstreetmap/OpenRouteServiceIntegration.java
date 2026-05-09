@@ -41,7 +41,7 @@ public class OpenRouteServiceIntegration {
         Map<String, Object> body = new HashMap<>();
         body.put("coordinates", coordinates);
         // Pedimos que optimize el orden de las paradas intermedias
-        body.put("optimize_waypoints", true);
+        body.put("optimize_waypoints", false);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 

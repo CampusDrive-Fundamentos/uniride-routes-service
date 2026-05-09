@@ -1,6 +1,10 @@
 package com.uniride.unirideroutesservice.routing.application.outboundservices.openstreetmap;
 
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Location;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -9,7 +13,6 @@ import java.util.List;
 @Component
 public class PolylineDecoder {
 
-    // 1. Decodifica el texto que envía OpenRouteService a una lista de puntos reales
     public List<Location> decodeToList(String encodedPath) {
         int len = encodedPath.length();
         int index = 0;
@@ -42,8 +45,23 @@ public class PolylineDecoder {
         return path;
     }
 
-    // 2. La famosa Fórmula de Haversine (calcula distancias curvos en la tierra)
-    public double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
+    // NUEVO: Convierte los puntos en una Línea Geográfica de PostGIS
+    public LineString decodeToLineString(String encodedPath) {
+        List<Location> path = decodeToList(encodedPath);
+        Coordinate[] coords = new Coordinate[path.size()];
+
+        for (int i = 0; i < path.size(); i++) {
+            // Nota: En geometría JTS, el orden es X (Longitud), Y (Latitud)
+            coords[i] = new Coordinate(path.get(i).getLongitude(), path.get(i).getLatitude());
+        }
+
+        // SRID 4326 es el estándar mundial del GPS
+        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        return geometryFactory.createLineString(coords);
+    }
+
+    // NUEVO: Lo usamos ÚNICAMENTE para calcular los kilómetros del estudiante para el microservicio de Finance.
+    public double calculatePointToPointDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Radio de la tierra en KM
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -51,17 +69,6 @@ public class PolylineDecoder {
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Devuelve la distancia en Kilómetros
-    }
-
-    // 3. Evalúa si el estudiante Seguidor está dentro del tubo de 500m
-    public boolean isPointNearLine(List<Location> polyline, double studentLat, double studentLng) {
-        for (Location point : polyline) {
-            double distance = calculateHaversineDistance(studentLat, studentLng, point.getLatitude(), point.getLongitude());
-            if (distance <= 0.5) { // 0.5 KM = 500 metros
-                return true;
-            }
-        }
-        return false;
+        return R * c;
     }
 }

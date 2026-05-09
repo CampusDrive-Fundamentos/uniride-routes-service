@@ -5,9 +5,11 @@ import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter; // <-- AÑADIDO PARA EVITAR EL ERROR
 
 @Embeddable
 @Getter
+@Setter // <-- AÑADIDO PARA EVITAR EL ERROR
 @NoArgsConstructor
 @AllArgsConstructor
 public class Location {
@@ -19,7 +21,6 @@ public class Location {
     @Column(name = "distance_from_start_km")
     private Double distanceFromStartKm;
 
-    // Constructor para Origen (Campus) y Destino final del Líder
     public Location(Double latitude, Double longitude, String address) {
         this.latitude = latitude;
         this.longitude = longitude;
