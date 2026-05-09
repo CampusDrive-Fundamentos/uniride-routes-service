@@ -1,0 +1,20 @@
+services:
+  db-routes:
+    image: postgis/postgis:16-3.4
+    container_name: uniride-routes-db
+    environment:
+      - POSTGRES_DB=uniride_routes
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_routes_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d uniride_routes"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_routes_data:
