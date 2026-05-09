@@ -48,17 +48,29 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(AddWaypointCommand command) {
         Optional<Route> routeOpt = routeRepository.findById(command.routeId());
         if (routeOpt.isEmpty()) return Optional.empty();
-
         Route route = routeOpt.get();
-        Double distance = polylineDecoder.calculateHaversineDistance(
-                route.getStartLocation().getLatitude(),
-                route.getStartLocation().getLongitude(),
-                command.lat(),
-                command.lng()
-        );
 
-        route.getWaypoints().add(new Location(command.lat(), command.lng(), command.address(), command.passengerId(), distance));
+        // Agregamos al alumno temporalmente
+        route.getWaypoints().add(new Location(command.lat(), command.lng(), command.address(), command.passengerId(), 0.0));
+
+        // SOLUCIÓN AL ERROR DEL LAMBDA: Extraer variables como finales
+        final double startLat = route.getStartLocation().getLatitude();
+        final double startLng = route.getStartLocation().getLongitude();
+
+        route.getWaypoints().sort((w1, w2) -> {
+            double dist1 = polylineDecoder.calculatePointToPointDistance(startLat, startLng, w1.getLatitude(), w1.getLongitude());
+            double dist2 = polylineDecoder.calculatePointToPointDistance(startLat, startLng, w2.getLatitude(), w2.getLongitude());
+            return Double.compare(dist1, dist2);
+        });
+
         updateRouteGeometry(route);
+        route = routeRepository.save(route);
+
+        for (Location wp : route.getWaypoints()) {
+            Double realDistance = routeRepository.calculateDistanceAlongRoute(route.getId(), wp.getLatitude(), wp.getLongitude());
+            wp.setDistanceFromStartKm(realDistance);
+        }
+
         return Optional.of(routeRepository.save(route));
     }
 
@@ -66,20 +78,31 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(RemoveWaypointCommand command) {
         Optional<Route> routeOpt = routeRepository.findById(command.routeId());
         if (routeOpt.isEmpty()) return Optional.empty();
-
         Route route = routeOpt.get();
+
         route.getWaypoints().removeIf(w ->
                 Math.abs(w.getLatitude() - command.lat()) < 0.0001 &&
                         Math.abs(w.getLongitude() - command.lng()) < 0.0001
         );
+
         updateRouteGeometry(route);
+        route = routeRepository.save(route);
+
+        for (Location wp : route.getWaypoints()) {
+            Double realDistance = routeRepository.calculateDistanceAlongRoute(route.getId(), wp.getLatitude(), wp.getLongitude());
+            wp.setDistanceFromStartKm(realDistance);
+        }
+
         return Optional.of(routeRepository.save(route));
     }
 
     private void updateRouteGeometry(Route route) {
         Map<String, Object> orsResult = orsIntegration.calculateOptimalRoute(route.getStartLocation(), route.getDestination(), route.getWaypoints());
-        route.setEncodedPolyline((String) orsResult.get("geometry"));
+        String polyline = (String) orsResult.get("geometry");
+
+        route.setEncodedPolyline(polyline);
         route.setTotalDistanceKm((Double) orsResult.get("distanceKm"));
+        route.setRoutePath(polylineDecoder.decodeToLineString(polyline));
     }
 
     @Override

@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.locationtech.jts.geom.LineString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,10 @@ public class Route extends AuditableModel {
 
     @Column(columnDefinition = "TEXT")
     private String encodedPolyline;
+
+    // NUEVO: La línea geográfica real entendida por PostGIS (SRID 4326 = GPS)
+    @Column(columnDefinition = "geometry(LineString, 4326)")
+    private LineString routePath;
 
     @Column(nullable = false)
     private Double totalDistanceKm;
