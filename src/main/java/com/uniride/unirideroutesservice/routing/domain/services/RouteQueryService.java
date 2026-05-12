@@ -12,6 +12,4 @@ public interface RouteQueryService {
     Optional<Route> handle(GetRouteByIdQuery query);
     List<Route> handle(SearchNearbyRoutesQuery query);
     List<Route> handle(GetAllSearchableRoutesByCampusQuery query);
-    Optional<Route> findSearchableRouteByLeaderId(Long leaderId);
-    Optional<Route> findSearchableRouteByPassengerId(Long passengerId);
 }
