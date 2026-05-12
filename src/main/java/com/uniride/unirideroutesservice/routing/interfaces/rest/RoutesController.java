@@ -36,7 +36,7 @@ public class RoutesController {
         this.routeQueryService = routeQueryService;
     }
 
-    // Método auxiliar para extraer el ID del usuario del token JWT
+    // Método auxiliar para extraer el ID del usuario del token JWT para la creación
     private Long getUserIdFromRequest(HttpServletRequest request) {
         Object userId = request.getAttribute("userId");
         if (userId != null) {
@@ -59,24 +59,6 @@ public class RoutesController {
         return routeCommandService.handle(command)
                 .map(route -> new ResponseEntity<>(RouteResourceFromEntityAssembler.toResourceFromEntity(route), HttpStatus.CREATED))
                 .orElse(ResponseEntity.badRequest().build());
-    }
-
-    @GetMapping("/current-leader")
-    @Operation(summary = "Get the currently searchable route for the logged-in leader")
-    public ResponseEntity<RouteResource> getSearchableRouteByLeaderId(HttpServletRequest request) {
-        Long leaderId = getUserIdFromRequest(request);
-        return routeQueryService.findSearchableRouteByLeaderId(leaderId)
-                .map(route -> ResponseEntity.ok(RouteResourceFromEntityAssembler.toResourceFromEntity(route)))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/current-follower")
-    @Operation(summary = "Get the searchable route where the logged-in user is a passenger")
-    public ResponseEntity<RouteResource> getSearchableRouteByPassengerId(HttpServletRequest request) {
-        Long passengerId = getUserIdFromRequest(request);
-        return routeQueryService.findSearchableRouteByPassengerId(passengerId)
-                .map(route -> ResponseEntity.ok(RouteResourceFromEntityAssembler.toResourceFromEntity(route)))
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{routeId}")

@@ -31,17 +31,7 @@ public class RouteQueryServiceImpl implements RouteQueryService {
     }
 
     @Override
-    public Optional<Route> findSearchableRouteByLeaderId(Long leaderId) {
-        return routeRepository.findFirstByLeaderIdAndVisibility(leaderId, Visibility.SEARCHABLE);
-    }
-
-    @Override
     public List<Route> handle(GetAllSearchableRoutesByCampusQuery query) {
         return routeRepository.findByStartCampusAndVisibility(query.campus(), Visibility.SEARCHABLE);
-    }
-
-    @Override
-    public Optional<Route> findSearchableRouteByPassengerId(Long passengerId) {
-        return routeRepository.findSearchableRouteByPassengerId(passengerId);
     }
 }

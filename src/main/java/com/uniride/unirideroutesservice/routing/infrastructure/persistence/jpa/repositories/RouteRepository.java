@@ -9,17 +9,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface RouteRepository extends JpaRepository<Route, Long> {
 
     List<Route> findByStartCampusAndVisibility(UniversityCampus startCampus, Visibility visibility);
-
-    Optional<Route> findFirstByLeaderIdAndVisibility(Long leaderId, Visibility visibility);
-
-    @Query("SELECT r FROM Route r JOIN r.waypoints w WHERE w.passengerId = :passengerId AND r.visibility = 'SEARCHABLE'")
-    Optional<Route> findSearchableRouteByPassengerId(@Param("passengerId") Long passengerId);
 
     // Búsqueda de rutas a 500 metros (El motor de Matchmaking PostGIS)
     @Query(value = "SELECT * FROM routes r WHERE r.start_campus = :campus AND r.visibility = 'SEARCHABLE' " +
