@@ -8,7 +8,7 @@ import com.uniride.unirideroutesservice.routing.domain.model.commands.AddWaypoin
 import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
 import com.uniride.unirideroutesservice.routing.domain.model.commands.RemoveWaypointCommand;
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Location;
-import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.RouteStatus;
+import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Visibility;
 import com.uniride.unirideroutesservice.routing.domain.services.RouteCommandService;
 import com.uniride.unirideroutesservice.routing.infrastructure.persistence.jpa.repositories.RouteRepository;
 import org.springframework.stereotype.Service;
@@ -106,9 +106,9 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
 
     @Override
-    public void updateStatus(Long routeId, RouteStatus status) {
+    public void updateVisibility(Long routeId, Visibility visibility) {
         routeRepository.findById(routeId).ifPresent(route -> {
-            route.setStatus(status);
+            route.setVisibility(visibility);
             routeRepository.save(route);
         });
     }
