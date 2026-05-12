@@ -37,6 +37,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Extraemos el ID del usuario desde el JWT (Asumiendo que el IAM lo guarda en el Subject)
                 String userId = claims.getSubject();
 
+                request.setAttribute("userId", userId);
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userId, null, new ArrayList<>());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

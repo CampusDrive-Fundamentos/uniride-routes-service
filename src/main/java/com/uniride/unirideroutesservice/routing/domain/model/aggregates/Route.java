@@ -2,7 +2,7 @@ package com.uniride.unirideroutesservice.routing.domain.model.aggregates;
 
 import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Location;
-import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.RouteStatus;
+import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Visibility;
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.UniversityCampus;
 import com.uniride.unirideroutesservice.shared.domain.model.entities.AuditableModel;
 import jakarta.persistence.*;
@@ -54,7 +54,6 @@ public class Route extends AuditableModel {
     @Column(columnDefinition = "TEXT")
     private String encodedPolyline;
 
-    // NUEVO: La línea geográfica real entendida por PostGIS (SRID 4326 = GPS)
     @Column(columnDefinition = "geometry(LineString, 4326)")
     private LineString routePath;
 
@@ -63,7 +62,7 @@ public class Route extends AuditableModel {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RouteStatus status;
+    private Visibility visibility; // <-- AQUÍ ESTÁ EL CAMBIO DE DDD
 
     @ElementCollection
     @CollectionTable(name = "route_waypoints", joinColumns = @JoinColumn(name = "route_id"))
@@ -75,7 +74,7 @@ public class Route extends AuditableModel {
         this.startCampus = command.campus();
         this.startLocation = new Location(command.campus().getLatitude(), command.campus().getLongitude(), command.campus().getDescription());
         this.destination = destinationLocation;
-        this.status = RouteStatus.PENDING;
+        this.visibility = Visibility.SEARCHABLE; // Por defecto es visible en el mapa
         this.totalDistanceKm = 0.0;
     }
 }

@@ -1,10 +1,10 @@
 package com.uniride.unirideroutesservice.routing.application.internal.queryservices;
 
 import com.uniride.unirideroutesservice.routing.domain.model.aggregates.Route;
-import com.uniride.unirideroutesservice.routing.domain.model.queries.GetAllPendingRoutesByCampusQuery;
+import com.uniride.unirideroutesservice.routing.domain.model.queries.GetAllSearchableRoutesByCampusQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.GetRouteByIdQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.SearchNearbyRoutesQuery;
-import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.RouteStatus;
+import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Visibility;
 import com.uniride.unirideroutesservice.routing.domain.services.RouteQueryService;
 import com.uniride.unirideroutesservice.routing.infrastructure.persistence.jpa.repositories.RouteRepository;
 import org.springframework.stereotype.Service;
@@ -27,22 +27,21 @@ public class RouteQueryServiceImpl implements RouteQueryService {
 
     @Override
     public List<Route> handle(SearchNearbyRoutesQuery query) {
-        // PostGIS hace el cálculo de 500 metros en milisegundos directamente en el motor SQL
         return routeRepository.findNearbyRoutes(query.campus().name(), query.studentLat(), query.studentLng());
     }
 
     @Override
-    public Optional<Route> findActiveRouteByLeaderId(Long leaderId) {
-        return routeRepository.findFirstByLeaderIdAndStatusNot(leaderId, RouteStatus.COMPLETED);
+    public Optional<Route> findSearchableRouteByLeaderId(Long leaderId) {
+        return routeRepository.findFirstByLeaderIdAndVisibility(leaderId, Visibility.SEARCHABLE);
     }
 
     @Override
-    public List<Route> handle(GetAllPendingRoutesByCampusQuery query) {
-        return routeRepository.findByStartCampusAndStatus(query.campus(), RouteStatus.PENDING);
+    public List<Route> handle(GetAllSearchableRoutesByCampusQuery query) {
+        return routeRepository.findByStartCampusAndVisibility(query.campus(), Visibility.SEARCHABLE);
     }
 
     @Override
-    public Optional<Route> findActiveRouteByPassengerId(Long passengerId) {
-        return routeRepository.findActiveRouteByPassengerId(passengerId);
+    public Optional<Route> findSearchableRouteByPassengerId(Long passengerId) {
+        return routeRepository.findSearchableRouteByPassengerId(passengerId);
     }
 }
