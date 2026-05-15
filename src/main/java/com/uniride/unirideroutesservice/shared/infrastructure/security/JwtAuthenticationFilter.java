@@ -28,7 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader == null) {
+            System.err.println("NO HAY HEADER DE AUTORIZACION");
+        } else if (!authHeader.startsWith("Bearer ")) {
+            System.err.println("EL HEADER NO EMPIEZA CON 'Bearer ': " + authHeader);
+        } else {
             String token = authHeader.substring(7);
             try {
                 SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
@@ -45,6 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {
+                System.err.println("Error validando JWT: " + e.getMessage());
+                e.printStackTrace();
                 SecurityContextHolder.clearContext();
             }
         }
