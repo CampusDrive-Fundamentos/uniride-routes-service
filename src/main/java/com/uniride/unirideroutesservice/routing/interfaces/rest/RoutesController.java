@@ -3,7 +3,6 @@ package com.uniride.unirideroutesservice.routing.interfaces.rest;
 import com.uniride.unirideroutesservice.routing.domain.model.commands.AddWaypointCommand;
 import com.uniride.unirideroutesservice.routing.domain.model.commands.CreateRouteCommand;
 import com.uniride.unirideroutesservice.routing.domain.model.commands.RemoveWaypointCommand;
-import com.uniride.unirideroutesservice.routing.domain.model.queries.GetAllSearchableRoutesByCampusQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.GetRouteByIdQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.SearchNearbyRoutesQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.UniversityCampus;
@@ -82,15 +81,7 @@ public class RoutesController {
         return ResponseEntity.ok(routes);
     }
 
-    @GetMapping("/campus/{campus}")
-    @Operation(summary = "Get all SEARCHABLE routes by campus")
-    public ResponseEntity<List<RouteResource>> getAllSearchableRoutesByCampus(@PathVariable String campus) {
-        List<RouteResource> routes = routeQueryService.handle(new GetAllSearchableRoutesByCampusQuery(UniversityCampus.valueOf(campus)))
-                .stream()
-                .map(RouteResourceFromEntityAssembler::toResourceFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(routes);
-    }
+
 
     @PutMapping("/{routeId}/waypoints")
     @Operation(summary = "Add a waypoint to the route, auto-sort passengers, and recalculate precise distances")
