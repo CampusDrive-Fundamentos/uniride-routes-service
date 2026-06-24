@@ -1,7 +1,6 @@
 package com.uniride.unirideroutesservice.routing.application.internal.queryservices;
 
 import com.uniride.unirideroutesservice.routing.domain.model.aggregates.Route;
-import com.uniride.unirideroutesservice.routing.domain.model.queries.GetAllSearchableRoutesByCampusQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.GetRouteByIdQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.queries.SearchNearbyRoutesQuery;
 import com.uniride.unirideroutesservice.routing.domain.model.valueobjects.Visibility;
@@ -28,10 +27,5 @@ public class RouteQueryServiceImpl implements RouteQueryService {
     @Override
     public List<Route> handle(SearchNearbyRoutesQuery query) {
         return routeRepository.findNearbyRoutes(query.campus().name(), query.studentLat(), query.studentLng());
-    }
-
-    @Override
-    public List<Route> handle(GetAllSearchableRoutesByCampusQuery query) {
-        return routeRepository.findByStartCampusAndVisibility(query.campus(), Visibility.SEARCHABLE);
     }
 }
